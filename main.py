@@ -13,18 +13,22 @@ from groq import Groq
 # 1. Load environment variables
 load_dotenv()
 
-# 2. CREATE FASTAPI APP FIRST (Ye line sab se pehle honi chahiye decorator se pehle)
+# 2. CREATE FASTAPI APP FIRST
 app = FastAPI(title="AI Study Assistant using RAG")
 
-# 3. Static Files & Directories Setup
+# 3. Environment & Directory Setup (Vercel Fix Included)
+if os.getenv("VERCEL"):
+    DB_DIR = "/tmp/db"
+    PDF_DIR = "/tmp/pdfs"
+else:
+    DB_DIR = "./db"
+    PDF_DIR = "./pdfs"
+
 os.makedirs("static", exist_ok=True)
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-PDF_DIR = "./pdfs"
-DB_DIR = "./db"
-
 os.makedirs(PDF_DIR, exist_ok=True)
 os.makedirs(DB_DIR, exist_ok=True)
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # 4. ChromaDB & Groq Setup
 embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
@@ -56,7 +60,7 @@ def custom_text_splitter(text: str, chunk_size: int = 500, overlap: int = 50):
         
     return chunks
 
-# 5. API Routes (In se pehle app define hona zaroori hy)
+# 5. API Routes
 @app.get("/", response_class=HTMLResponse)
 def read_root():
     with open("index.html", "r", encoding="utf-8") as f:
