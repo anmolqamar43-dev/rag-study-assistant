@@ -4,6 +4,4 @@ chromadb
 groq
 pypdf
 sentence-transformers
-jinja2
-python-multipart
 python-dotenv
