@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Study Assistant - RAG</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>📚 AI Study Assistant</h1>
+    <p class="subtitle">Retrieval-Augmented Generation using ChromaDB & Groq</p>
+
+    <div class="card">
+        <h3>Step 1: Process PDFs & Generate Embeddings</h3>
+        <p>Ensure 5 Python chapter PDFs are in the <code>pdfs/</code> folder.</p>
+        <button onclick="processPDFs()">Process PDFs & Store in ChromaDB</button>
+        <div id="processStatus" class="status-msg"></div>
+    </div>
+
+    <div class="card">
+        <h3>Step 2: Ask Question</h3>
+        <div style="display: flex;">
+            <input type="text" id="userQuery" placeholder="e.g., What is a for loop in Python?">
+            <button onclick="askQuestion()">Ask Assistant</button>
+        </div>
+        <div id="answerBox" class="response-box" style="display:none;"></div>
+    </div>
+</div>
+
+<script>
+    async function processPDFs() {
+        const statusDiv = document.getElementById('processStatus');
+        statusDiv.innerText = "Extracting text, chunking & saving vector embeddings...";
+        
+        try {
+            const res = await fetch('/process_pdfs', { method: 'POST' });
+            const data = await res.json();
+            statusDiv.innerText = data.message || data.detail;
+        } catch (err) {
+            statusDiv.innerText = "Error processing PDFs. Check console/terminal.";
+        }
+    }
+
+    async function askQuestion() {
+        const query = document.getElementById('userQuery').value;
+        if (!query) return alert("Please type a question!");
+
+        const answerBox = document.getElementById('answerBox');
+        answerBox.style.display = 'block';
+        answerBox.innerText = "Searching vectors in ChromaDB & generating answer via Groq...";
+
+        try {
+            const res = await fetch('/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: query })
+            });
+            const data = await res.json();
+            answerBox.innerText = data.answer || data.detail;
+        } catch (err) {
+            answerBox.innerText = "Error generating response.";
+        }
+    }
+</script>
+
+</body>
+</html>
